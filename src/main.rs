@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate fingers;
 
-use fingers::fingers::FingerTree; // TODO: this is dumb :-(
+use fingers::FingerTree;
 use std::iter::FromIterator;
 
 fn main() {

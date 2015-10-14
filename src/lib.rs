@@ -1,4 +1,5 @@
 // #![feature(plugin)]
 // #![plugin(clippy)]
 
-pub mod fingers;
+pub use self::fingers::*;
+mod fingers;

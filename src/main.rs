@@ -6,7 +6,7 @@ use std::iter::FromIterator;
 
 fn main() {
     let n_vec = vec![0, 1, 2, 3, 4];
-    let n_tree = FingerTree::<usize>::from_iter(n_vec);
+    let n_tree = FingerTree::from_iter(n_vec);
     println!("{:?}", n_tree);
 
     let n_tree2 = finger_tree![0, 1, 2, 3, 4];
@@ -14,4 +14,6 @@ fn main() {
 
     println!("front: {:?}", n_tree.front());
     println!("back: {:?}", n_tree.back());
+
+    println!("{:?}", n_tree.push_front(0).push_back(6))
 }

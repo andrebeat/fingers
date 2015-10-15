@@ -1,19 +1,22 @@
 #[macro_use]
 extern crate fingers;
 
-use fingers::FingerTree;
+use fingers::{FingerTree, Foldable};
 use std::iter::FromIterator;
 
 fn main() {
-    let n_vec = vec![0, 1, 2, 3, 4];
-    let n_tree = FingerTree::from_iter(n_vec);
-    println!("{:?}", n_tree);
+    let v = vec![0, 1, 2, 3, 4];
+    let t = FingerTree::from_iter(v);
+    println!("{:?}", t);
 
-    let n_tree2 = finger_tree![0, 1, 2, 3, 4];
-    println!("{:?}", n_tree2);
+    let t2 = finger_tree![0, 1, 2, 3, 4];
+    println!("{:?}", t2);
 
-    println!("front: {:?}", n_tree.front());
-    println!("back: {:?}", n_tree.back());
+    println!("front: {:?}", t.front());
+    println!("back: {:?}", t.back());
 
-    println!("{:?}", n_tree.push_front(0).push_back(6))
+    println!("{:?}", t.push_front(0).push_back(6));
+
+    let sum = t2.foldl(0, &|a, b| a + b);
+    println!("{:?}", sum);
 }

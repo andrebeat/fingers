@@ -11,8 +11,8 @@ pub trait Monoid {
 }
 
 pub trait Foldable<A> {
-    fn foldl<B, F>(&self, z: B, f: F) -> B where F: Fn(B, &A) -> B;
-    fn foldr<B, F>(&self, z: B, f: F) -> B where F: Fn(&A, B) -> B;
+    fn foldl<B>(&self, z: B, f: &Fn(B, &A) -> B) -> B;
+    fn foldr<B>(&self, z: B, f: &Fn(&A, B) -> B) -> B;
 }
 
 //
@@ -86,19 +86,19 @@ impl<A> Node<A> {
 }
 
 impl<A> Foldable<A> for Node<A> {
-    fn foldl<B, F>(&self, z: B, f: F) -> B where F: Fn(B, &A) -> B {
+    fn foldl<B>(&self, z: B, f: &Fn(B, &A) -> B) -> B {
         match *self {
             Leaf(ref a) => f(z, a),
-            Node2(ref a, ref b) => b.foldl(a.foldl(z, &f), &f),
-            Node3(ref a, ref b, ref c) => c.foldl(b.foldl(a.foldl(z, &f), &f), &f)
+            Node2(ref a, ref b) => b.foldl(a.foldl(z, f), f),
+            Node3(ref a, ref b, ref c) => c.foldl(b.foldl(a.foldl(z, f), f), f)
         }
     }
 
-    fn foldr<B, F>(&self, z: B, f: F) -> B where F: Fn(&A, B) -> B {
+    fn foldr<B>(&self, z: B, f: &Fn(&A, B) -> B) -> B {
         match *self {
             Leaf(ref a) => f(a, z),
-            Node2(ref a, ref b) => a.foldr(b.foldr(z, &f), &f),
-            Node3(ref a, ref b, ref c) => a.foldr(b.foldr(c.foldr(z, &f), &f), &f)
+            Node2(ref b, ref a) => b.foldr(a.foldr(z, f), f),
+            Node3(ref c, ref b, ref a) => c.foldr(b.foldr(a.foldr(z, f), f), f)
         }
     }
 }
@@ -124,21 +124,21 @@ impl<A> Digit<A> {
 }
 
 impl<A> Foldable<A> for Digit<A> {
-    fn foldl<B, F>(&self, z: B, f: F) -> B where F: Fn(B, &A) -> B {
+    fn foldl<B>(&self, z: B, f: &Fn(B, &A) -> B) -> B {
         match *self {
-            One(ref a) => a.foldl(z, &f),
-            Two(ref a, ref b) => b.foldl(a.foldl(z, &f), &f),
-            Three(ref a, ref b, ref c) => c.foldl(b.foldl(a.foldl(z, &f), &f), &f),
-            Four(ref a, ref b, ref c, ref d) => d.foldl(c.foldl(b.foldl(a.foldl(z, &f), &f), &f), &f)
+            One(ref a) => a.foldl(z, f),
+            Two(ref a, ref b) => b.foldl(a.foldl(z, f), f),
+            Three(ref a, ref b, ref c) => c.foldl(b.foldl(a.foldl(z, f), f), f),
+            Four(ref a, ref b, ref c, ref d) => d.foldl(c.foldl(b.foldl(a.foldl(z, f), f), f), f)
         }
     }
 
-    fn foldr<B, F>(&self, z: B, f: F) -> B where F: Fn(&A, B) -> B {
+    fn foldr<B>(&self, z: B, f: &Fn(&A, B) -> B) -> B {
         match *self {
-            One(ref a) => a.foldr(z, &f),
-            Two(ref a, ref b) => a.foldr(b.foldr(z, &f), &f),
-            Three(ref a, ref b, ref c) => a.foldr(b.foldr(c.foldr(z, &f), &f), &f),
-            Four(ref a, ref b, ref c, ref d) => a.foldr(b.foldr(c.foldr(d.foldr(z, &f), &f), &f), &f)
+            One(ref a) => a.foldr(z, f),
+            Two(ref b, ref a) => b.foldr(a.foldr(z, f), f),
+            Three(ref c, ref b, ref a) => c.foldr(b.foldr(a.foldr(z, f), f), f),
+            Four(ref d, ref c, ref b, ref a) => d.foldr(c.foldr(b.foldr(a.foldr(z, f), f), f), f)
         }
     }
 }
@@ -218,30 +218,30 @@ impl<A: Clone> FingerTree<A> {
 }
 
 impl<A> Foldable<A> for FingerTree<A> {
-    fn foldl<B, F>(&self, z: B, f: F) -> B where F: Fn(B, &A) -> B {
+    fn foldl<B>(&self, z: B, f: &Fn(B, &A) -> B) -> B {
         match *self {
             Empty => z,
-            Single(ref a) => a.foldl(z, &f),
+            Single(ref a) => a.foldl(z, f),
             Deep(ref pr, ref m, ref sf) => {
-                fn fold<A, B, F>(b: B, d: &Digit<A>, f: &F) -> B where F: Fn(B, &A) -> B {
+                fn fold<A, B>(b: B, d: &Digit<A>, f: &Fn(B, &A) -> B) -> B {
                     d.foldl(b, f)
                 }
 
-                fold(m.foldl(fold(z, pr, &f), |b, a| f(b, a)), sf, &f)
+                fold(m.foldl(fold(z, pr, f), &|b, a| f(b, a)), sf, f)
             }
         }
     }
 
-    fn foldr<B, F>(&self, z: B, f: F) -> B where F: Fn(&A, B) -> B {
+    fn foldr<B>(&self, z: B, f: &Fn(&A, B) -> B) -> B {
         match *self {
             Empty => z,
             Single(ref a) => a.foldr(z, &f),
             Deep(ref pr, ref m, ref sf) => {
-                fn fold<A, B, F>(b: B, d: &Digit<A>, f: &F) -> B where F: Fn(&A, B) -> B {
+                fn fold<A, B>(b: B, d: &Digit<A>, f: &Fn(&A, B) -> B) -> B {
                     d.foldr(b, f)
                 }
 
-                fold(m.foldr(fold(z, sf, &f), |a, b| f(a, b)), pr, &f)
+                fold(m.foldr(fold(z, sf, f), &|a, b| f(a, b)), pr, f)
             }
         }
     }
